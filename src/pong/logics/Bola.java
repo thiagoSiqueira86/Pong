@@ -28,7 +28,6 @@ public class Bola {
 	public void atualizar() {
 		colisao();
 		colisaoBolaJogador();
-		pontuacao();
 		
 		posX += dirX * VELOCIDADE;
 		posY += dirY * VELOCIDADE;
@@ -60,18 +59,6 @@ public class Bola {
 			if(dirY < 0) {
 				dirY *= -1;
 			}
-		}
-	}
-	
-	public void pontuacao() {
-		if(posY >= Pong.ALTURA) {
-			System.out.println("Ponto Deles");
-			new Pong();
-			return;
-		}else if(posY < 0) {
-			System.out.println("Ponto Nosso");
-			new Pong();
-			return;
 		}
 	}
 

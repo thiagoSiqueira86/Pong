@@ -3,6 +3,7 @@ package pong.core;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -14,6 +15,7 @@ import javax.swing.JFrame;
 import pong.logics.Bola;
 import pong.logics.Inimigo;
 import pong.logics.Jogador;
+import pong.logics.Placar;
 
 public class Pong extends Canvas implements Runnable, KeyListener {
 
@@ -28,6 +30,10 @@ public class Pong extends Canvas implements Runnable, KeyListener {
 	public static Jogador jogador;
 	public static Inimigo inimigo;
 	public static Bola bola;
+	public static Placar placar;
+	
+	private boolean isRunnable = false;
+	private boolean gameOver = false;
 	
 	public Pong() {
 		this.setPreferredSize(getConfiguracaoJanela());
@@ -36,6 +42,7 @@ public class Pong extends Canvas implements Runnable, KeyListener {
 		jogador = new Jogador(100, ALTURA - 5);
 		inimigo = new Inimigo(100, 0);
 		bola = new Bola(100, ALTURA/ 2 - 1);
+		placar = new Placar();
 		
 		layer = new BufferedImage(LARGURA, ALTURA, BufferedImage.TYPE_INT_RGB);
 	}
@@ -44,6 +51,7 @@ public class Pong extends Canvas implements Runnable, KeyListener {
 		jogador.atualizar();
 		inimigo.atualizar();
 		bola.atualizar();
+		placar.atualizar();
 	}
 	
 	public void renderizar() {
@@ -59,9 +67,29 @@ public class Pong extends Canvas implements Runnable, KeyListener {
 		jogador.renderizar(g);
 		inimigo.renderizar(g);
 		bola.renderizar(g);
+		placar.renderizar(g);
 		
 		g = bs.getDrawGraphics();
 		g.drawImage(layer, 0, 0, LARGURA*ESCALA, ALTURA*ESCALA, null);
+		
+		if(!isRunnable && gameOver == false) {
+			g.setFont(new Font("Arial", Font.BOLD, 20));
+			g.drawString("Precione Enter para Começar", 100, ALTURA);
+		}
+		
+		if(placar.jogadorVencedor) {
+			g.setFont(new Font("Arial", Font.BOLD, 20));
+			g.drawString("Parabens você venceu!!(Enter para Reiniciar)", 100, ALTURA);
+			isRunnable = false;
+			gameOver = true;
+		}
+		
+		if(placar.cpuVencedor) {
+			g.setFont(new Font("Arial", Font.BOLD, 20));
+			g.drawString("Que pena você perdeu!!(Enter para Reiniciar)", 100, ALTURA);
+			isRunnable = false;
+			gameOver = true;
+		}
 		
 		bs.show();
 	}
@@ -96,10 +124,24 @@ public class Pong extends Canvas implements Runnable, KeyListener {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
+		switch (e.getKeyCode()) {
+		case KeyEvent.VK_RIGHT:
 			jogador.direita = true;
-		}else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
+			break;
+		case KeyEvent.VK_LEFT:
 			jogador.esquerda = true;
+			break;
+		case KeyEvent.VK_ENTER:
+			if(gameOver == false) {
+				isRunnable = true;
+			}else {
+				gameOver = false;
+				new Pong();
+			}
+			break;
+		case KeyEvent.VK_ESCAPE:
+			isRunnable = false;
+			break;
 		}
 	}
 
@@ -116,8 +158,12 @@ public class Pong extends Canvas implements Runnable, KeyListener {
 	@Override
 	public void run() {
 		while(true) {
-			atualizar();
-			renderizar();
+			if(isRunnable) {
+				atualizar();
+				renderizar();
+			}else {
+				renderizar();
+			}
 			try {
 				Thread.sleep(1000/60);
 			}catch (Exception e) {
